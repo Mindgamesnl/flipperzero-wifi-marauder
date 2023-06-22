@@ -1,3 +1,8 @@
+# About this fork
+This fork simply adds a menu button to automatically scan for all access points (25 seconds) and select them all in bulk.
+
+https://github.com/Mindgamesnl/flipperzero-wifi-marauder/assets/10709682/9e68ae93-5c4b-472e-a948-4464a5d5064c
+
 [![FAP Build](https://github.com/0xchocolate/flipperzero-wifi-marauder/actions/workflows/build.yml/badge.svg)](https://github.com/0xchocolate/flipperzero-wifi-marauder/actions/workflows/build.yml)
 
 # WiFi Marauder companion app for Flipper Zero
