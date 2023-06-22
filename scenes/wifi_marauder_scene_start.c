@@ -56,12 +56,10 @@ void parseAccessPoint(const char* input, WifiMarauderAccessPoint* ap) {
 
         if (*chEnd != '\0') {
             // Calculate the length of the "ch" value
-            size_t chLength = 0;
-            const char* chValueStart = chEnd;
-            while (*chEnd != ' ' && *chEnd != '\0') {
-                chEnd++;
-                chLength++;
-            }
+            size_t chLength = strcspn(chEnd, " ");
+
+            // Adjust chEnd to point to the end of the ID value
+            chEnd += chLength;
 
             // Allocate memory for the ID and copy the "ch" value
             ap->id = malloc((chLength + 1) * sizeof(char));
@@ -70,7 +68,7 @@ void parseAccessPoint(const char* input, WifiMarauderAccessPoint* ap) {
                 // Add appropriate error handling (e.g., return an error code or exit)
                 return;
             }
-            strncpy(ap->id, chValueStart, chLength);
+            strncpy(ap->id, chEnd - chLength, chLength);
             ap->id[chLength] = '\0';
         }
         else {
@@ -89,12 +87,7 @@ void parseAccessPoint(const char* input, WifiMarauderAccessPoint* ap) {
 
         if (*essidEnd != '\0') {
             // Calculate the length of the ESSID
-            size_t essidLength = 0;
-            const char* essidValueStart = essidEnd;
-            while (*essidEnd != '\0') {
-                essidEnd++;
-                essidLength++;
-            }
+            size_t essidLength = strlen(essidEnd);
 
             // Allocate memory for the SSID and copy the ESSID value
             ap->ssid = malloc((essidLength + 1) * sizeof(char));
@@ -105,7 +98,7 @@ void parseAccessPoint(const char* input, WifiMarauderAccessPoint* ap) {
                 ap->id = NULL; // Reset ap->id to NULL
                 return;
             }
-            strncpy(ap->ssid, essidValueStart, essidLength);
+            strncpy(ap->ssid, essidEnd, essidLength);
             ap->ssid[essidLength] = '\0';
         }
         else {
@@ -113,7 +106,6 @@ void parseAccessPoint(const char* input, WifiMarauderAccessPoint* ap) {
         }
     }
 }
-
 
 
 // array of access points
@@ -243,13 +235,29 @@ char* generateMessage(int numAccessPoints, WifiMarauderAccessPoint* accessPoints
         }
 
         // Concatenate the access point line
-        strcat(message, indexStr);
+        strcat(message, accessPoints[i].id);
         strcat(message, ". \"");
         strcat(message, accessPoints[i].ssid);
         strcat(message, "\"\n");
     }
 
     return message;
+}
+
+char* getLastData(const char* input) {
+    if (input == NULL) {
+        // Handle invalid input (e.g., return an error code or exit)
+        return NULL;
+    }
+
+    // Find the last space character in the input string
+    const char* lastSpace = strrchr(input, ' ');
+    if (lastSpace != NULL) {
+        // Return a copy of the substring after the last space character
+        return strdup(lastSpace + 1);
+    }
+
+    return NULL; // No space character found, return NULL
 }
 
 void scan_and_select_all(WifiMarauderApp* app) {
@@ -297,6 +305,20 @@ void scan_and_select_all(WifiMarauderApp* app) {
 
         // continue if ap.ssid is NULL or ap.id is NULL
         if (ap.ssid == NULL || ap.id == NULL) {
+            // does this string start with "Beacon"?
+            if (strncmp(line, "Beacon", strlen("Beacon")) == 0) {
+                char* last = getLastData(line);
+                if (last != NULL) {
+                    // make sure that we have accessPoints
+                    if (accessPoints != NULL && numAccessPoints != 0) {
+                        // grab the previous AP from accessPoints
+                        WifiMarauderAccessPoint *prev = &accessPoints[numAccessPoints - 1];
+                        // set the channel
+                        prev->id = last;
+                    }
+                }
+            }
+
             line = custom_strtok(NULL, "\n", &savePtr);
             continue;
         }
@@ -350,7 +372,7 @@ void scan_and_select_all(WifiMarauderApp* app) {
     accessPoints = NULL;
     numAccessPoints = 0;
 
-    furi_delay_ms(1000);
+    furi_delay_ms(3000);
 
     // back to home
     scene_manager_set_scene_state(app->scene_manager, WifiMarauderSceneStart, 0);

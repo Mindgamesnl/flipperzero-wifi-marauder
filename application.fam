@@ -1,6 +1,6 @@
 App(
     appid="esp32_wifi_marauder",
-    name="[Bulk] WiFi Marauder",
+    name="[Mats] WiFi Marauder",
     apptype=FlipperAppType.EXTERNAL,
     entry_point="wifi_marauder_app",
     requires=["gui"],
