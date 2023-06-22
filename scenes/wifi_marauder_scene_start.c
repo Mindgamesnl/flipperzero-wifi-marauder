@@ -277,9 +277,16 @@ void scan_and_select_all(WifiMarauderApp* app) {
     furi_delay_ms(500);
 
     wifi_marauder_uart_set_handle_rx_data_cb(app->uart, handle_scan_backfeed);
-    text_box_set_text(app->text_box, "Scanning for 10 seconds\n");
     wifi_marauder_uart_tx((uint8_t*)("scanap\n"), strlen("scanap\n"));
-    furi_delay_ms(10 * 1000);
+
+    int secondsRemaining = 60;
+    while (secondsRemaining > 0) {
+        char secondsRemainingStr[30];
+        snprintf(secondsRemainingStr, 30, "Scanning for %d seconds...", secondsRemaining);
+        text_box_set_text(app->text_box, secondsRemainingStr);
+        furi_delay_ms(1000);
+        secondsRemaining--;
+    }
 
     // stopscan
     text_box_set_text(app->text_box, "Stopping scan\n");
