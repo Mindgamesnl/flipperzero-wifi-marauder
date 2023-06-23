@@ -259,6 +259,8 @@ void scan_and_select_all(WifiMarauderApp* app) {
         secondsRemaining--;
     }
 
+    wifi_marauder_uart_tx((uint8_t*)("stopscan\n"), strlen("stopscan\n"));
+
     furi_delay_ms(500);
 
     // loop over all lines in totalOutput and parse them
